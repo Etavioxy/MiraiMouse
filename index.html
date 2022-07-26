@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Numpad</title>
+  <style>
+    :root{
+      --sizeBtn: 75px;
+      --diameter: 61px;
+      --marginBtn: calc(calc(75px - var(--diameter)) / 2);
+      --diameter2: calc(calc(var(--marginBtn) + var(--diameter)) * 2);
+    }
+    * {
+      margin: 0;
+    }
+    #pad {
+      background-color: pink;
+      margin: 1rem;
+      width: 300px;
+      height: 450px;
+      padding: 5px;
+      border: 8px solid rgb(228, 161, 171);
+      border-radius: 20px;
+      box-shadow:4px 4px 15px;
+      position: relative;
+    }
+    .led {
+      width: 100%;
+    }
+    .tab {
+      width: 100%;
+      position: absolute;
+      margin: auto;
+      bottom: 5px;
+    }
+    .flex {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .btn {
+      box-sizing: border-box;
+      background-color: grey;
+      height: var(--diameter);
+      width: var(--diameter);
+      margin: var(--marginBtn);
+      border-radius: calc(var(--diameter)/2);
+      box-shadow:1px 1px 5px;
+    }
+    .w2 { width: var(--diameter2); }
+    .r2 {
+      height: var(--diameter2);
+      float: right;
+      margin-right: calc(10px + var(--marginBtn));
+    }
+    .c1 { background-color: papayawhip; }
+    .c2 { background-color: mistyrose; }
+    .c3 { background-color: lavender; }
+    .c4 { background-color: lightpink; }
+    .c5 { background-color: thistle; }
+  </style>
+</head>
+<body>
+  <div id="pad">
+    <div class="led"></div>
+    <div class="tab">
+      <div class="flex">
+        <div class="btn c2"></div>
+        <div class="btn c4"></div>
+        <div class="btn c3"></div>
+        <div class="btn c4"></div>
+
+        <div class="btn c1"></div>
+        <div class="btn c5"></div>
+        <div class="btn c1"></div>
+        <div class="btn c2"></div>
+
+        <div class="btn c1"></div>
+        <div class="btn c2"></div>
+        <div class="btn c4"></div>
+        <div class="btn c5"></div>
+      </div>
+        <div class="btn c2 r2"></div>
+      <div class="flex">
+        <div class="btn c4"></div>
+        <div class="btn c3"></div>
+        <div class="btn c1"></div>
+
+        <div class="btn c5 w2"></div>
+        <div class="btn c3"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
