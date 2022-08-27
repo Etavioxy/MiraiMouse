@@ -223,42 +223,32 @@ return
 #Backspace::#Tab
 NumLock & Backspace::
 send #{Tab}
-KeyWait, NumLock
-Send {Blind}{NumLock up}
-Send {NumLock}
-Send {Blind}{NumLock up}
+tmp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %tmp%
 return
 NumLock & NumpadMult::
 ;ButtonWinRight:
 Send ^#{Right}
-KeyWait, NumLock
-Send {Blind}{NumLock up}
-Send {NumLock}
-Send {Blind}{NumLock up}
+tmp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %tmp%
 return
 NumLock & NumpadDiv::
 ;ButtonWinLeft:
 Send ^#{Left}
-KeyWait, NumLock
-Send {Blind}{NumLock up}
-Send {NumLock}
-Send {Blind}{NumLock up}
+tmp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %tmp%
 return
 NumLock & NumpadAdd::
-;ButtonWinLeft:
+;ButtonWinNew:
 Send ^#d
-KeyWait, NumLock
-Send {Blind}{NumLock up}
-Send {NumLock}
-Send {Blind}{NumLock up}
+tmp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %tmp%
 return
 NumLock & NumpadSub::
-;ButtonWinLeft:
+;ButtonWinDelete:
 Send ^#{F4}
-KeyWait, NumLock
-Send {Blind}{NumLock up}
-Send {NumLock}
-Send {Blind}{NumLock up}
+tmp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %tmp%
 return
 
 ;Mouse click support
