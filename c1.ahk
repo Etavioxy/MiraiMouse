@@ -66,15 +66,13 @@ Hotkey, *Numpad8 up, ButtonArrowUpu
 Hotkey, *Numpad2 up, ButtonArrowDownu
 Hotkey, *Numpad4 up, ButtonArrowLeftu
 Hotkey, *Numpad6 up, ButtonArrowRightu
-Hotkey, *^!Numpad6, ButtonWinRight
-Hotkey, *^!Numpad4 , ButtonWinLeft
-Hotkey, *^Numpad6,ButtonMediaNext
+Hotkey, *^Numpad6, ButtonMediaNext
 Hotkey, *^Numpad4, ButtonMediaPrev
 Hotkey, *Numpad7, ButtonBrightnessUp
-Hotkey, *Numpad1,  ButtonBrightnessDown
+Hotkey, *Numpad1, ButtonBrightnessDown
 Hotkey, *Numpad9, ButtonVolumeUp
 Hotkey, *Numpad3, ButtonVolumeDown
-Hotkey, *Numpad5,ButtonMediaPlayPause
+Hotkey, *Numpad5, ButtonMediaPlayPause
 Hotkey, *!Numpad5,ButtonMagnifierToggle
 	
 Hotkey, *NumpadUp, ButtonUp
@@ -133,8 +131,6 @@ If ScrollLockState = D
 	Hotkey, *Numpad2 up, Off
 	Hotkey, *Numpad4 up, Off
 	Hotkey, *Numpad6 up, Off
-	Hotkey, *^!Numpad6, Off
-	Hotkey, *^!Numpad4 , Off
 	Hotkey, *^Numpad6,Off
 	Hotkey, *^Numpad4, Off
 	Hotkey, *Numpad7, Off
@@ -184,8 +180,6 @@ else
 	Hotkey, *Numpad2 up, On
 	Hotkey, *Numpad4 up, On
 	Hotkey, *Numpad6 up, On
-	Hotkey, *^!Numpad6, On
-	Hotkey, *^!Numpad4 , On
 	Hotkey, *^Numpad6,On
 	Hotkey, *^Numpad4, On
 	Hotkey, *Numpad7, On
@@ -229,6 +223,38 @@ return
 #Backspace::#Tab
 NumLock & Backspace::
 send #{Tab}
+KeyWait, NumLock
+Send {Blind}{NumLock up}
+Send {NumLock}
+Send {Blind}{NumLock up}
+return
+NumLock & NumpadMult::
+;ButtonWinRight:
+Send ^#{Right}
+KeyWait, NumLock
+Send {Blind}{NumLock up}
+Send {NumLock}
+Send {Blind}{NumLock up}
+return
+NumLock & NumpadDiv::
+;ButtonWinLeft:
+Send ^#{Left}
+KeyWait, NumLock
+Send {Blind}{NumLock up}
+Send {NumLock}
+Send {Blind}{NumLock up}
+return
+NumLock & NumpadAdd::
+;ButtonWinLeft:
+Send ^#d
+KeyWait, NumLock
+Send {Blind}{NumLock up}
+Send {NumLock}
+Send {Blind}{NumLock up}
+return
+NumLock & NumpadSub::
+;ButtonWinLeft:
+Send ^#{F4}
 KeyWait, NumLock
 Send {Blind}{NumLock up}
 Send {NumLock}
@@ -378,7 +404,7 @@ return
 ScreenShotRec:
 Send #+s
 SetKeyDelay, -1
-Send {Blind}{LWin up}
+Send {Blind}{Win up}
 Send {Blind}{Shift up}
 return
 
@@ -728,14 +754,6 @@ ButtonPageDown:
 Send {NumpadPgDn}
 Tooltip, PageDown
 SetTimer, RemoveToolTip, 800
-return
-ButtonWinRight:
-Send ^#{Right}
-Send {Blind}{LWin up}
-return
-ButtonWinLeft:
-Send ^#{Left}
-Send {Blind}{LWin up}
 return
 ButtonMagnifierToggle:
 magnifier := 1-magnifier

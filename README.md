@@ -22,6 +22,10 @@
 
 <kbd>NumLock</kbd>+<kbd>Backspace</kbd>: (Win+Tab) 查看所有桌面
 
+<kbd>NumLock</kbd>+<kbd>/*</kbd>: (Ctrl+Win+←→) 向左、向右切换桌面
+
+<kbd>NumLock</kbd>+<kbd>+-</kbd>: (Ctrl+Win+D F4) 新建、删除桌面
+
 ## NumLock Off
 
 <kbd>8</kbd><kbd>2</kbd><kbd>4</kbd><kbd>6</kbd>: `↑↓←→` move for mouse
