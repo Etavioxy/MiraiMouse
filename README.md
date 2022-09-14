@@ -1,8 +1,16 @@
-# MiraiMouse v1.1.0
+# MiraiMouse v1.1.2
 
 一个基于小键盘的*鼠标驱动*，便于单手控制电脑。目前自用，环境是Windows 11和一些特定软件使用场景。
 
 使用AutoHotKey脚本，源代码见`c1.ahk`，编译好的exe文件使用了AutoHotKey的Ahk2Exe程序。
+
+## 使用
+
+1. 安装最新版Autohotkey
+
+2. `git clone`或者下载zip，打开编译好的sakuramirai.exe，喜欢的话丢开机自启文件夹
+
+---
 
 以下是所有修改的映射:
 
@@ -22,9 +30,7 @@
 
 <kbd>NumLock</kbd>+<kbd>Backspace</kbd>: (Win+Tab) 查看所有桌面
 
-<kbd>NumLock</kbd>+<kbd>/*</kbd>: (Ctrl+Win+←→) 向左、向右切换桌面
-
-<kbd>NumLock</kbd>+<kbd>+-</kbd>: (Ctrl+Win+D F4) 新建、删除桌面
+<kbd>NumLock</kbd>+<kbd>/\*</kbd>: (Ctrl+Win+←→) 向左、向右切换桌面
 
 ## NumLock Off
 
@@ -91,8 +97,6 @@ double-click<kbd>5</kbd>: keep Slow mode
 <kbd>Enter</kbd>: Enter
 
 <kbd>Alt</kbd>+<kbd>5</kbd>: (Win+=)&(Win+Esc) 切换放大镜开关
-
-<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>4</kbd>/<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>6</kbd>: (Ctrl+Win+`←`/`→`) 切换到上/下一个桌面
 
 ## Notes
 

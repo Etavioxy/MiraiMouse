@@ -26,6 +26,7 @@ MousePosY := A_ScreenHeight/2
 
 FlagSlow = 0
 TranslateOn = 0
+NumLockTemp = -1
 
 ;END OF CONFIG SECTION
 
@@ -223,35 +224,24 @@ return
 #Backspace::#Tab
 NumLock & Backspace::
 send #{Tab}
-tmp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %tmp%
+if NumLockTemp=-1
+NumLockTemp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %NumLockTemp%
 return
 NumLock & NumpadMult::
 ;ButtonWinRight:
 Send ^#{Right}
-tmp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %tmp%
+if NumLockTemp=-1
+	NumLockTemp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %NumLockTemp%
 return
 NumLock & NumpadDiv::
 ;ButtonWinLeft:
 Send ^#{Left}
-tmp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %tmp%
+if NumLockTemp=-1
+	NumLockTemp := 1-GetKeyState("NumLock", "T")
+SetNumLockState, %NumLockTemp%
 return
-NumLock & NumpadAdd::
-;ButtonWinNew:
-Send ^#d
-tmp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %tmp%
-return
-NumLock & NumpadSub::
-;ButtonWinDelete:
-Send ^#{F4}
-tmp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %tmp%
-return
-
-;Mouse click support
 
 ButtonEnter:
 If !GetKeyState("NumLock", "T")
@@ -324,6 +314,7 @@ return
 tip := GetKeyState("NumLock", "T")
 Tooltip, NumLock = %tip%
 KeyWait, NumLock
+NumLockTemp := -1
 Tooltip
 FlagSlow = 0
 SetTimer, ButtonClickEnd, Off
