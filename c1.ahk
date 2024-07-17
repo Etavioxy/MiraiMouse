@@ -26,7 +26,7 @@ MousePosY := A_ScreenHeight/2
 
 FlagSlow = 0
 TranslateOn = 0
-NumLockTemp = -1
+NumLockComboVal = -1
 
 ;END OF CONFIG SECTION
 
@@ -40,6 +40,9 @@ Temp2 = 0.66667
 tarray_x := [0,0,0]
 tarray_y := [0,0,0]
 ttop = 0
+
+movecheck = 0
+cntButton = 0
 
 MouseCurrentAccelerationSpeed = 0
 MouseCurrentSpeed = %MouseSpeed%
@@ -222,25 +225,37 @@ return
 ^!Backspace::^!Tab
 +!Backspace::+!Tab
 #Backspace::#Tab
+
+
+revertNumLock:
+NumLockComboVal := 1
+Sleep 10
+NumLockState := GetKeyState("NumLock", "T")  ; 获取当前 Num Lock 键的状态
+if (NumLockState) {
+    SetNumLockState, Off  ; 如果 Num Lock 键是开启状态，则关闭它
+} else {
+    SetNumLockState, On   ; 如果 Num Lock 键是关闭状态，则打开它
+}
+return
+
 NumLock & Backspace::
 send #{Tab}
-if NumLockTemp=-1
-NumLockTemp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %NumLockTemp%
+if( NumLockComboVal = -1 )
+	Gosub revertNumLock
 return
+
 NumLock & NumpadMult::
 ;ButtonWinRight:
 Send ^#{Right}
-if NumLockTemp=-1
-	NumLockTemp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %NumLockTemp%
+if( NumLockComboVal = -1 )
+	Gosub revertNumLock
 return
+
 NumLock & NumpadDiv::
 ;ButtonWinLeft:
 Send ^#{Left}
-if NumLockTemp=-1
-	NumLockTemp := 1-GetKeyState("NumLock", "T")
-SetNumLockState, %NumLockTemp%
+if( NumLockComboVal = -1 )
+	Gosub revertNumLock
 return
 
 ButtonEnter:
@@ -312,9 +327,16 @@ return
 
 ~NumLock::
 tip := GetKeyState("NumLock", "T")
-Tooltip, NumLock = %tip%
+
+if (tip) {
+    tooltipText := "ARROW"
+} else {
+    tooltipText := "MOVE"
+}
+Tooltip, NumLock = %tip% %tooltipText%
+
 KeyWait, NumLock
-NumLockTemp := -1
+NumLockComboVal := -1
 Tooltip
 FlagSlow = 0
 SetTimer, ButtonClickEnd, Off
@@ -491,6 +513,7 @@ If !GetKeyState("NumLock", "T")
 SetTimer, ButtonAccelerationEnd, Off
 cntButton = 0
 return
+
 ButtonSlow:
 gosub FlagSlowFalse
 Loop
@@ -558,8 +581,10 @@ Loop, 3
 		break
 	}
 }
+;Tooltip,  %xpos% %ypos% 
 MouseMove, xpos, ypos, 12
 return
+
 ButtonStepSlow:
 Gosub CheckMove
 if ttop
@@ -572,9 +597,11 @@ else
 {
 	MouseGetPos, xpos, ypos
 	Gosub StartStepCalc
+  ;Tooltip,  %xpos% %ypos% 
 	MouseMove, xpos, ypos, 12
 }
 return
+
 CheckMove:
 If( movecheck = 0 )
 {
@@ -585,24 +612,87 @@ If( movecheck = 0 )
 return
 	
 StartStepCalc:
-If( pointedposx > MousePosX + 12 )
-	xpos := xpos + Temp2*A_ScreenHeight/4
-else If( pointedposx < MousePosX - 12 )
-	xpos := xpos - Temp2*A_ScreenHeight/4
-If( pointedposy > MousePosY + 12 )
-	ypos := ypos + Temp2*A_ScreenHeight/4
-else If( pointedposy < MousePosY - 12 )
-	ypos := ypos - Temp2*A_ScreenHeight/4
-Xmax := A_ScreenWidth - 10
-If xpos > %Xmax%
-	xpos := Xmax
-else If xpos < 10
-	xpos := 10
-Ymax := A_ScreenHeight - 10
-If ypos > %Ymax%
-	ypos := Ymax
-else If ypos < 10
-	ypos := 10
+
+CoordMode, Mouse, Screen  ; 将鼠标坐标模式设置为屏幕模式，以便我们可以检测多显示器的边界
+
+SysGet, MonitorCount, MonitorCount  ; 获取显示器数量
+
+; 获取每个显示器的边界信息
+Loop %MonitorCount%
+{
+    SysGet, Monitor, Monitor, %A_Index%
+    MonitorX%A_Index% := MonitorLeft
+    MonitorY%A_Index% := MonitorTop
+    MonitorWidth%A_Index% := MonitorRight - MonitorLeft
+    MonitorHeight%A_Index% := MonitorBottom - MonitorTop
+}
+
+; 获取当前鼠标的位置
+;MouseGetPos, xpos, ypos
+
+; 遍历每个显示器的边界进行检测
+Loop %MonitorCount%
+{
+    MonitorLeft := MonitorX%A_Index%
+    MonitorTop := MonitorY%A_Index%
+    MonitorRight := MonitorX%A_Index% + MonitorWidth%A_Index%
+    MonitorBottom := MonitorY%A_Index% + MonitorHeight%A_Index%
+
+    MonitorHeight := MonitorHeight%A_Index%
+
+    tmp_xpos = %xpos%
+    tmp_ypos = %ypos%
+
+    ; 检查鼠标是否在当前显示器内，并调整位置
+    if (tmp_xpos > MonitorLeft && tmp_xpos < MonitorRight && tmp_ypos > MonitorTop && tmp_ypos < MonitorBottom)
+    {
+    
+    If( pointedposx > MousePosX + 12 )
+    	xpos := xpos + Temp2*MonitorHeight/4
+    else If( pointedposx < MousePosX - 12 )
+    	xpos := xpos - Temp2*MonitorHeight/4
+    If( pointedposy > MousePosY + 12 )
+    	ypos := ypos + Temp2*MonitorHeight/4
+    else If( pointedposy < MousePosY - 12 )
+    	ypos := ypos - Temp2*MonitorHeight/4
+
+    ;flag := xpos > MonitorLeft && xpos < MonitorRight && ypos > MonitorTop && ypos < MonitorBottom
+
+    Xmax := MonitorRight - 10
+    Ymax := MonitorBottom - 10
+    Xmin := MonitorLeft + 10
+    Ymin := MonitorTop + 10
+
+    ;Tooltip, %MonitorHeight% | %tmp1% %tmp2% { %MousePosX% %MousePosY% } | %xpos% %ypos% { %pointedposx% %pointedposy% } | %Xmin% %Xmax% %Ymin% %Ymax% | %MonitorLeft% %MonitorRight% %MonitorTop% %MonitorBottom% | %flag% %movecheck% | %flag1% %flag2% 
+
+        Clamp(value, min, max) {
+            if (value < min)
+                return min
+            else if (value > max)
+                return max
+            else
+                return value
+        }
+        ;txpos := Clamp(xpos, Xmin, Xmax)
+        ;typos := Clamp(ypos, Ymin, Ymax)
+    ;Tooltip, %tmp_xpos% %tmp_ypos% %xpos% %ypos% | %Xmin% %Xmax% %Ymin% %Ymax% | %txpos% %typos%
+        xpos := Clamp(xpos, Xmin, Xmax)
+        ypos := Clamp(ypos, Ymin, Ymax)
+        ;if xpos > Xmax
+        ;    xpos := Xmax
+        ;else if xpos < Xmin
+        ;    xpos := Xmin
+
+        ;if ypos > Ymax
+        ;    ypos := Ymax
+        ;else if ypos < Ymin
+        ;    ypos := Ymin
+
+        ; 一旦找到匹配的显示器并调整位置，跳出循环
+		;MouseMove, 490, 10, 12
+        break
+    }
+}
 return
 
 ;Mouse wheel movement support
