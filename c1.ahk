@@ -218,14 +218,31 @@ CoordMode, Mouse, Screen
 MouseGetPos, MousePosX, MousePosY
 return
 
-+Backspace::+Tab
-^Backspace::^Tab
-^+Backspace::^+Tab
-!Backspace::!Tab
-^!Backspace::^!Tab
-+!Backspace::+!Tab
-#Backspace::#Tab
+Hotkey, *NumpadSub, ButtonShift
+Hotkey, *NumpadAdd, ButtonCtrl
+Hotkey, *NumpadDot, ButtonAlt
 
+*Backspace::
+	sub := GetKeyState("NumpadSub", "P")
+	add := GetKeyState("NumpadAdd", "P")
+	dot := GetKeyState("NumpadDot", "P")
+    if (sub && !add && !dot)
+        Send +{Tab}            ; 仅按下 NumpadSub => Shift+Tab
+    else if (add && !sub && !dot)
+        Send ^{Tab}            ; 仅按下 NumpadAdd => Ctrl+Tab
+    else if (sub && add && !dot)
+        Send ^+{Tab}           ; 同时按下 NumpadSub 和 NumpadAdd => Ctrl+Shift+Tab
+    else if (dot && !sub && !add)
+        Send !{Tab}            ; 仅按下 NumpadDot => Alt+Tab
+    else if (add && dot && !sub)
+        Send ^!{Tab}           ; 同时按下 NumpadAdd 和 NumpadDot => Ctrl+Alt+Tab
+    else if (sub && dot && !add)
+        Send +!{Tab}           ; 同时按下 NumpadSub 和 NumpadDot => Shift+Alt+Tab
+    else if (sub && add && dot)
+		Send ^+!{Tab}          ; 三个同时按下 => Ctrl+Shift+Alt+Tab
+	else
+        Send {Backspace}       ; 默认行为，原样发送 Backspace
+return
 
 revertNumLock:
 NumLockComboVal := 1
@@ -238,6 +255,7 @@ if (NumLockState) {
 }
 return
 
+NumLock & Tab::
 NumLock & Backspace::
 send #{Tab}
 if( NumLockComboVal = -1 )
@@ -339,7 +357,6 @@ KeyWait, NumLock
 NumLockComboVal := -1
 Tooltip
 FlagSlow = 0
-SetTimer, ButtonClickEnd, Off
 SetTimer, ButtonAccelerationEnd, Off
 return
 
@@ -412,40 +429,27 @@ Send {Blind}{Shift up}
 return
 
 ButtonLeftClick:
-GetKeyState, already_down_state, LButton
-If already_down_state = D
-	return
-Button2 = NumpadIns
-ButtonClick = Left
-Goto ButtonClickStart
-	
-ButtonMiddleClick:
-GetKeyState, already_down_state, MButton
-If already_down_state = D
-	return
-Button2 = Numpad0
-ButtonClick = Middle
-Goto ButtonClickStart
-	
-ButtonRightClick:
-GetKeyState, already_down_state, RButton
-If already_down_state = D
-	return
-Button2 = NumpadDel
-ButtonClick = Right
-Goto ButtonClickStart
-	
-ButtonClickStart:
-MouseClick, %ButtonClick%,,, 1, 0, D
-SetTimer, ButtonClickEnd, 10
+	if GetKeyState("LButton", "P")
+		return
+	SendEvent, {Blind}{LButton down}
+	KeyWait, NumpadIns   ; 等待 NumpadIns 键释放
+	SendEvent, {Blind}{LButton up}
 return
 	
-ButtonClickEnd:
-GetKeyState, kclickstate, %Button2%, P
-if kclickstate = D
-	return
-SetTimer, ButtonClickEnd, Off
-MouseClick, %ButtonClick%,,, 1, 0, U
+ButtonMiddleClick:
+	if GetKeyState("MButton", "P")
+		return
+	SendEvent, {Blind}{MButton down}
+	KeyWait, Numpad0    ; 等待 Numpad0 键释放
+	SendEvent, {Blind}{MButton up}
+return
+	
+ButtonRightClick:
+	if GetKeyState("RButton", "P")
+		return
+	SendEvent, {Blind}{RButton down}
+	KeyWait, NumpadDel   ; 等待 NumpadDel 键释放
+	SendEvent, {Blind}{RButton up}
 return
 
 ;Mouse movement support
