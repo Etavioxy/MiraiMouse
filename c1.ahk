@@ -518,7 +518,22 @@ If GetKeyState("NumpadLeft", "P")
 	MouseCurrentSpeedX -= MouseTrueSpeed
 If GetKeyState("NumpadRight", "P")
 	MouseCurrentSpeedX += MouseTrueSpeed
-MouseMove, %MouseCurrentSpeedX%, %MouseCurrentSpeedY%, 0, R
+;MouseMove, %MouseCurrentSpeedX%, %MouseCurrentSpeedY%, 0, R
+
+MouseGetPos, xpos, ypos
+
+xpos := xpos + MouseCurrentSpeedX
+ypos := ypos + MouseCurrentSpeedY
+
+;MouseGetPos, xpos0, ypos0
+
+DllCall("SetCursorPos", "int", xpos, "int", ypos)
+
+;MouseGetPos, xpos1, ypos1
+;xs := MouseCurrentSpeedX
+;ys := MouseCurrentSpeedY
+;Tooltip, %xpos0% %ypos0% %xs% %ys% %xpos1% %ypos1%
+
 SetTimer, ButtonAccelerationEnd, 10
 return
 	
@@ -606,7 +621,8 @@ Loop, 3
 	}
 }
 ;Tooltip,  %xpos% %ypos% 
-MouseMove, xpos, ypos, 12
+;MouseMove, xpos, ypos, 12
+DllCall("SetCursorPos", "int", xpos, "int", ypos)
 return
 
 ButtonStepSlow:
@@ -615,14 +631,16 @@ if ttop
 {
 	x := tarray_x[ttop], y := tarray_y[ttop]
 	ttop -= 1
-	MouseMove, x, y, 12
+	;MouseMove, x, y, 12
+	DllCall("SetCursorPos", "int", x, "int", y)
 }
 else
 {
 	MouseGetPos, xpos, ypos
 	Gosub StartStepCalc
-  ;Tooltip,  %xpos% %ypos% 
-	MouseMove, xpos, ypos, 12
+	;Tooltip,  %xpos% %ypos% 
+	;MouseMove, xpos, ypos, 12
+	DllCall("SetCursorPos", "int", xpos, "int", ypos)
 }
 return
 
@@ -697,23 +715,12 @@ Loop %MonitorCount%
             else
                 return value
         }
-        ;txpos := Clamp(xpos, Xmin, Xmax)
-        ;typos := Clamp(ypos, Ymin, Ymax)
+    ;txpos := Clamp(xpos, Xmin, Xmax)
+    ;typos := Clamp(ypos, Ymin, Ymax)
     ;Tooltip, %tmp_xpos% %tmp_ypos% %xpos% %ypos% | %Xmin% %Xmax% %Ymin% %Ymax% | %txpos% %typos%
         xpos := Clamp(xpos, Xmin, Xmax)
         ypos := Clamp(ypos, Ymin, Ymax)
-        ;if xpos > Xmax
-        ;    xpos := Xmax
-        ;else if xpos < Xmin
-        ;    xpos := Xmin
 
-        ;if ypos > Ymax
-        ;    ypos := Ymax
-        ;else if ypos < Ymin
-        ;    ypos := Ymin
-
-        ; 一旦找到匹配的显示器并调整位置，跳出循环
-		;MouseMove, 490, 10, 12
         break
     }
 }
