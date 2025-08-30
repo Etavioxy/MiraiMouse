@@ -10,9 +10,9 @@
 ; Hook hotkeys are smart enough to ignore such keystrokes.
 #UseHook
 
-MouseSpeed = 8
-MouseAccelerationSpeed = 2
-MouseMaxSpeed = 20
+MouseSpeed = 12
+MouseAccelerationSpeed = 3
+MouseMaxSpeed = 30
 
 ;Mouse wheel speed is also set on Control Panel. As that
 ;will affect the normal mouse behavior, the real speed of
@@ -109,6 +109,22 @@ NumLock & NumpadEnter::
 Send {ScrollLock}
 Gosub, ~ScrollLock  ; Initialize based on current ScrollLock state.
 return
+
+LAlt & NumLock::
+if(MouseSpeed = 8)
+{
+	MouseSpeed := 12
+	MouseAccelerationSpeed := 3
+	MouseMaxSpeed := 30
+}
+else
+{
+	MouseSpeed := 8
+	MouseAccelerationSpeed := 2
+	MouseMaxSpeed := 20
+}
+return
+
 
 ~ScrollLock::
 ; Wait for it to be released because otherwise the hook state gets reset
@@ -218,10 +234,6 @@ CoordMode, Mouse, Screen
 MouseGetPos, MousePosX, MousePosY
 return
 
-Hotkey, *NumpadSub, ButtonShift
-Hotkey, *NumpadAdd, ButtonCtrl
-Hotkey, *NumpadDot, ButtonAlt
-
 *Backspace::
 	sub := GetKeyState("NumpadSub", "P")
 	add := GetKeyState("NumpadAdd", "P")
@@ -319,6 +331,8 @@ SetKeyDelay, -1
 Send {Blind}{Ctrl up}
 return
 ButtonShift:
+if GetKeyState("LCtrl", "P")
+	return
 SetKeyDelay, -1
 Send {Blind}{Shift DownR}
 return
@@ -358,6 +372,11 @@ NumLockComboVal := -1
 Tooltip
 FlagSlow = 0
 SetTimer, ButtonAccelerationEnd, Off
+
+gosub ButtonShiftu
+gosub ButtonCtrlu
+gosub ButtonAltu
+
 return
 
 
@@ -371,9 +390,10 @@ return
 ;msgbox %MousePosX% - %xpos%/%A_ScreenWidth% %MousePosY% - %ypos%/%A_ScreenHeight%
 ;return
 
+; 暂时停用所有的custom键
 ; CUSTOM 1
 Translate:
-Send ^!8
+;Send ^!8
 SetKeyDelay, -1
 Send {Blind}{Ctrl up}
 Send {Blind}{Alt up}
@@ -386,7 +406,7 @@ SetTimer, RemoveToolTip, 800
 return
 ; CUSTOM 2
 TranslateRead:
-Send !v
+;Send !v
 SetKeyDelay, -1
 Send {Blind}{Alt up}
 Tooltip, Voice
@@ -416,13 +436,13 @@ SetTimer, RemoveToolTip, 800
 return
 ; CUSTOM 3
 ScreenShot:
-Send {PrintScreen}
+;Send {PrintScreen}
 Tooltip, ScreenShot
 SetTimer, RemoveToolTip, 800
 return
 ; CUSTOM 4
 ScreenShotRec:
-Send #+s
+;Send #+s
 SetKeyDelay, -1
 Send {Blind}{Win up}
 Send {Blind}{Shift up}
