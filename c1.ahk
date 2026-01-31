@@ -13,6 +13,7 @@
 MouseSpeed = 12
 MouseAccelerationSpeed = 3
 MouseMaxSpeed = 30
+MoveCheckLength = 18
 
 ;Mouse wheel speed is also set on Control Panel. As that
 ;will affect the normal mouse behavior, the real speed of
@@ -110,18 +111,27 @@ Send {ScrollLock}
 Gosub, ~ScrollLock  ; Initialize based on current ScrollLock state.
 return
 
+; 将鼠标前进按钮（通常是按钮4）映射为 Win+Ctrl+左箭头
+XButton2::Send ^#{Left}
+
+; 将鼠标后退按钮（通常是按钮5）映射为 Win+Ctrl+右箭头
+XButton1::Send ^#{Right}
+
+
 LAlt & NumLock::
 if(MouseSpeed = 8)
 {
 	MouseSpeed := 12
 	MouseAccelerationSpeed := 3
 	MouseMaxSpeed := 30
+	MoveCheckLength = 18
 }
 else
 {
 	MouseSpeed := 8
 	MouseAccelerationSpeed := 2
 	MouseMaxSpeed := 20
+	MoveCheckLength = 12
 }
 return
 
@@ -689,13 +699,13 @@ Loop %MonitorCount%
     if (tmp_xpos > MonitorLeft && tmp_xpos < MonitorRight && tmp_ypos > MonitorTop && tmp_ypos < MonitorBottom)
     {
     
-    If( pointedposx > MousePosX + 12 )
+    If( pointedposx > MousePosX + MoveCheckLength )
     	xpos := xpos + Temp2*MonitorHeight/4
-    else If( pointedposx < MousePosX - 12 )
+    else If( pointedposx < MousePosX - MoveCheckLength )
     	xpos := xpos - Temp2*MonitorHeight/4
-    If( pointedposy > MousePosY + 12 )
+    If( pointedposy > MousePosY + MoveCheckLength )
     	ypos := ypos + Temp2*MonitorHeight/4
-    else If( pointedposy < MousePosY - 12 )
+    else If( pointedposy < MousePosY - MoveCheckLength )
     	ypos := ypos - Temp2*MonitorHeight/4
 
     ;flag := xpos > MonitorLeft && xpos < MonitorRight && ypos > MonitorTop && ypos < MonitorBottom
