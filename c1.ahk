@@ -818,10 +818,10 @@ SetKeyDelay, -1
 Send {Blind}{NumpadRight up}
 return
 ButtonBrightnessUp:
-MoveBrightness(2)
+MoveBrightness(1)
 return
 ButtonBrightnessDown:
-MoveBrightness(-2)
+MoveBrightness(-1)
 return
 ButtonVolumeUp:
 Send {Blind}{Volume_Up}
@@ -883,72 +883,181 @@ else
 }
 return
 
-MoveBrightness(IndexMove) {
+MoveBrightness(Direction) {
+	; 亮度序列
+	BrightnessSequence := [0, 1, 2, 3, 5, 8, 13, 21, 30, 40, 50, 60, 70, 80, 90, 100]
+	
+	; 尝试使用 Twinkle Tray
+	TwinkleTrayPath := ""
+	EnvGet, AppDataLocal, LOCALAPPDATA
+	CurrentBrightness := 50  ; 默认值
+	UseTwinkleTray := false
+	DebugInfo := "Debug Info:`n"
+	
+	if (AppDataLocal != "") {
+		TwinkleTrayPath := AppDataLocal . "\Programs\twinkle-tray\Twinkle Tray.exe"
+		IfExist, %TwinkleTrayPath%
+		{
+			DebugInfo .= "Found Twinkle Tray: " . TwinkleTrayPath . "`n"
+			
+			; 使用 WScript.Shell 的 Exec 方法直接获取输出
+			shell := ComObjCreate("WScript.Shell")
+			exec := shell.Exec(ComSpec " /C """ TwinkleTrayPath """ --All --List")
+			OutputText := exec.StdOut.ReadAll()
+			
+			DebugInfo .= "Output received, length: " . StrLen(OutputText) . "`n"
+			
+			; 解析输出，找到 Type 不为 none 的显示器
+			Loop, Parse, OutputText, `n
+			{
+				Line := Trim(A_LoopField)
+				if (Line = "")
+					continue
+				
+				DebugInfo .= "Parsing: " . Line . "`n"
+				
+				; 查找 Brightness 行 - 从最后一个空格后取值
+				if (InStr(Line, "Brightness:")) {
+					if (RegExMatch(Line, "\s+(\d+)\s*$", Match)) {
+						BrightnessValue := Match1
+						PotentialBrightness := BrightnessValue
+						DebugInfo .= "Found Brightness: " . PotentialBrightness . "`n"
+					}
+				}
+				
+				; 查找 Type 行 - 从最后一个空格后取值
+				if (InStr(Line, "Type:")) {
+					if (RegExMatch(Line, "\s+(\w+)\s*$", Match)) {
+						TypeValue := Match1
+						DebugInfo .= "Found Type: " . TypeValue . "`n"
+						
+						; 如果 Type 不是 none，使用这个亮度值
+						if (TypeValue != "none") {
+							CurrentBrightness := PotentialBrightness
+							UseTwinkleTray := true
+							DebugInfo .= "Using Twinkle Tray with brightness: " . CurrentBrightness . "`n"
+						}
+					}
+				}
+			}
+		}
+		else {
+			DebugInfo .= "Twinkle Tray not found at: " . TwinkleTrayPath . "`n"
+		}
+	}
+	else {
+		DebugInfo .= "LOCALAPPDATA not found`n"
+	}
+	
+	; 在序列中查找当前亮度的索引
+	CurrentIndex := 0
+	MinDiff := 999999
+	Loop, % BrightnessSequence.Length()
+	{
+		Diff := Abs(BrightnessSequence[A_Index] - CurrentBrightness)
+		if (Diff < MinDiff) {
+			MinDiff := Diff
+			CurrentIndex := A_Index
+		}
+	}
+	
+	DebugInfo .= "Current Brightness: " . CurrentBrightness . ", Index: " . CurrentIndex . ", Direction: " . Direction . "`n"
+	
+	; 计算新索引
+	NewIndex := CurrentIndex + Direction
+	
+	; 检查边界
+	if (NewIndex < 1 || NewIndex > BrightnessSequence.Length()) {
+		DebugInfo .= "Boundary reached. NewIndex: " . NewIndex . ", Max: " . BrightnessSequence.Length() . "`n"
+		;CoordMode, ToolTip
+		ToolTip, ---------------------------------------------------------------------------------------------------------------  Brightness %CurrentBrightness%  --------------------------------------------------------------------------------------------------------------- , 0,
+		SetTimer, RemoveToolTip, -3000
+		;MsgBox, % DebugInfo
+		return
+	}
+	
+	; 获取新亮度值
+	NewBrightness := BrightnessSequence[NewIndex]
+	
+	DebugInfo .= "New Brightness: " . NewBrightness . ", NewIndex: " . NewIndex . "`n"
+	
+	; 显示提示
+	;CoordMode, ToolTip
+	ToolTip, ---------------------------------------------------------------------------------------------------------------  Brightness %NewBrightness%  --------------------------------------------------------------------------------------------------------------- , 0,
+	SetTimer, RemoveToolTip, -3000
+	;MsgBox, % DebugInfo
+	
+	; 如果有 Twinkle Tray，使用它
+	if (UseTwinkleTray) {
+		RunWait, "%TwinkleTrayPath%" --All --Set=%NewBrightness%, , Hide
+		return
+	}
+	
+	; 否则使用原始方法
 	VarSetCapacity(SupportedBrightness, 256, 0)
 	VarSetCapacity(SupportedBrightnessSize, 4, 0)
 	VarSetCapacity(BrightnessSize, 4, 0)
 	VarSetCapacity(Brightness, 3, 0)
 	
-	hLCD := DllCall("CreateFile" , Str, "\\.\LCD"
-	, UInt, 0x80000000 | 0x40000000 ;Read | Write
-	, UInt, 0x1 | 0x2  ; File Read | File Write
-	, UInt, 0 , UInt, 0x3  ; open any existing file
-	, UInt, 0 , UInt, 0)
+	hLCD := DllCall("CreateFile", Str, "\\.\LCD"
+		, UInt, 0x80000000 | 0x40000000
+		, UInt, 0x1 | 0x2
+		, UInt, 0, UInt, 0x3
+		, UInt, 0, UInt, 0)
 	
-	if hLCD != -1
-	{
-		
+	if (hLCD != -1) {
 		DevVideo := 0x00000023, BuffMethod := 0, Fileacces := 0
-		  NumPut(0x03, Brightness, 0, "UChar")   ; 0x01 = Set AC, 0x02 = Set DC, 0x03 = Set both
-		  NumPut(0x00, Brightness, 1, "UChar")      ; The AC brightness level
-		  NumPut(0x00, Brightness, 2, "UChar")      ; The DC brightness level
-		DllCall("DeviceIoControl" , UInt, hLCD
-		  , UInt, (DevVideo<<16 | 0x126<<2 | BuffMethod<<14 | Fileacces)
-		  , UInt, 0 , UInt, 0 , UInt, &Brightness
-		  , UInt, 3 , UInt, &BrightnessSize , UInt, 0)
+		NumPut(0x03, Brightness, 0, "UChar")
+		NumPut(0x00, Brightness, 1, "UChar")
+		NumPut(0x00, Brightness, 2, "UChar")
 		
-		DllCall("DeviceIoControl" , UInt, hLCD
-		  , UInt, (DevVideo<<16 | 0x125<<2 | BuffMethod<<14 | Fileacces)
-		  , UInt, 0 , UInt, 0 , UInt, &SupportedBrightness
-		  , UInt, 256 , UInt, &SupportedBrightnessSize , UInt, 0)
+		DllCall("DeviceIoControl", UInt, hLCD
+			, UInt, (DevVideo<<16 | 0x126<<2 | BuffMethod<<14 | Fileacces)
+			, UInt, 0, UInt, 0, UInt, &Brightness
+			, UInt, 3, UInt, &BrightnessSize, UInt, 0)
+		
+		DllCall("DeviceIoControl", UInt, hLCD
+			, UInt, (DevVideo<<16 | 0x125<<2 | BuffMethod<<14 | Fileacces)
+			, UInt, 0, UInt, 0, UInt, &SupportedBrightness
+			, UInt, 256, UInt, &SupportedBrightnessSize, UInt, 0)
 		
 		ACBrightness := NumGet(Brightness, 1, "UChar")
 		ACIndex := 0
 		DCBrightness := NumGet(Brightness, 2, "UChar")
 		DCIndex := 0
 		BufferSize := NumGet(SupportedBrightnessSize, 0, "UInt")
-		MaxIndex := BufferSize-1
+		MaxIndex := BufferSize - 1
+		
 		Loop, %BufferSize%
 		{
-		ThisIndex := A_Index-1
-		ThisBrightness := NumGet(SupportedBrightness, ThisIndex, "UChar")
-		if ACBrightness = %ThisBrightness%
-			ACIndex := ThisIndex
-		if DCBrightness = %ThisBrightness%
-			DCIndex := ThisIndex
+			ThisIndex := A_Index - 1
+			ThisBrightness := NumGet(SupportedBrightness, ThisIndex, "UChar")
+			if (ACBrightness = ThisBrightness)
+				ACIndex := ThisIndex
+			if (DCBrightness = ThisBrightness)
+				DCIndex := ThisIndex
 		}
-		if DCIndex >= %ACIndex%
-		  BrightnessIndex := DCIndex
-		else
-		  BrightnessIndex := ACIndex
-		BrightnessIndex += IndexMove
-		if BrightnessIndex > %MaxIndex%
-		   BrightnessIndex := MaxIndex
-		if BrightnessIndex < 0
-		   BrightnessIndex := 0
-		NewBrightness := NumGet(SupportedBrightness, BrightnessIndex, "UChar")
-		TempLight := Floor(BRightnessIndex / MaxIndex *100)	;以提示方式显示当前亮度 修改 by shinyship
-		CoordMode, ToolTip
-		ToolTip, ---------------------------------------------------------------------------------------------------------------  Brightness %TempLight%  --------------------------------------------------------------------------------------------------------------- ,0,
-		SetTimer, RemoveToolTip, -3000
-		NewBRightness := NumGet(SupportedBRightness, BRightnessIndex, "UChar")
-		NumPut(0x03, Brightness, 0, "UChar")   ; 0x01 = Set AC, 0x02 = Set DC, 0x03 = Set both
-        NumPut(NewBrightness, Brightness, 1, "UChar")      ; The AC brightness level
-        NumPut(NewBrightness, Brightness, 2, "UChar")      ; The DC brightness level
-		DllCall("DeviceIoControl" , UInt, hLCD
+		
+		BrightnessIndex := (DCIndex >= ACIndex) ? DCIndex : ACIndex
+		
+		; 将百分比转换为实际的亮度索引
+		NewBrightnessIndex := Floor(NewBrightness / 100 * MaxIndex)
+		if (NewBrightnessIndex > MaxIndex)
+			NewBrightnessIndex := MaxIndex
+		if (NewBrightnessIndex < 0)
+			NewBrightnessIndex := 0
+		
+		NewBrightnessByte := NumGet(SupportedBrightness, NewBrightnessIndex, "UChar")
+		
+		NumPut(0x03, Brightness, 0, "UChar")
+		NumPut(NewBrightnessByte, Brightness, 1, "UChar")
+		NumPut(NewBrightnessByte, Brightness, 2, "UChar")
+		
+		DllCall("DeviceIoControl", UInt, hLCD
 			, UInt, (DevVideo<<16 | 0x127<<2 | BuffMethod<<14 | Fileacces)
 			, UInt, &Brightness
-			, UInt, 3 , UInt, 0 , UInt, 0 , UInt, 0 , Uint, 0)
+			, UInt, 3, UInt, 0, UInt, 0, UInt, 0, UInt, 0)
+		
 		DllCall("CloseHandle", UInt, hLCD)
 	}
 }
