@@ -117,6 +117,8 @@ XButton2::Send ^#{Left}
 ; 将鼠标后退按钮（通常是按钮5）映射为 Win+Ctrl+右箭头
 XButton1::Send ^#{Right}
 
+; 用 CapsLock 切换中英文（发送 Ctrl+空格）
+CapsLock::Send, ^{Space}
 
 LAlt & NumLock::
 if(MouseSpeed = 8)
